@@ -11,7 +11,8 @@ from music import Music
 
 
 def contain_wake_up_word(statement: str) -> bool:
-    return "debout alita" in statement or "debout anita" in statement or "debout aliba" in statement or "debout anita" in statement
+    words = ["debout alita", "debout anita", "debout aliba", "debout à l'état"]
+    return any(word in statement for word in words)
 
 
 def contain_sleep_word(statement: str) -> bool:
@@ -66,7 +67,7 @@ def find_action_to_do(statement: str, alita: Assistant):
         else:
             alita.talk("Il n'y avait rien a arreté")
     elif contain_weather_word(statement):
-        alita.tell_weather(statement.split()[-1])
+        alita.tell_weather()
     elif contain_joke_word(statement):
         alita.tell_joke()
     elif contain_reminder_word(statement):
@@ -92,7 +93,7 @@ def start_alita():
 
         if contain_wake_up_word(statement):
             alita.talk("Salut mec")
-            alita.awake = True
+            alita.listening = True
         elif contain_sleep_word(statement):
             alita.listening = False
             alita.talk("A la prochaine")

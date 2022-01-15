@@ -86,10 +86,12 @@ class Assistant:
             self.talk(joke.joke)
         else:
             self.talk(joke.setup)
-            time.sleep(2)
+            time.sleep(1)
             self.talk(joke.delivery)
 
-    def tell_weather(self, city: str):
+    def tell_weather(self):
+        self.talk("Tu veux la météo de quelle ville ?")
+        city = self.listen()
         city_weather = self.__weather.get_city_weather(city)
         self.talk(city_weather)
 
@@ -105,13 +107,12 @@ class Assistant:
 
     def add_reminder(self):
         hour = self.ask_reminder_hour()
-        self.talk("OK ! Quel est le motif de ce rappel ?")
         reason = self.ask_reminder_reason()
         try:
             date_time_obj = datetime.strptime(hour, '%Hh%M')
             reminder = Reminder(date_time_obj, reason)
             self.__reminders.append(reminder)
-            self.talk(f"OK ! Rappel programmé à {reminder.hour} pour {reminder.reason}")
+            self.talk(f"OK ! Rappel programmé à {reminder.hour.time()} pour {reminder.reason}")
         except:
             self.talk("Oops, le rappel n'a pas pu être programmé !")
 
