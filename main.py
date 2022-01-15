@@ -3,6 +3,8 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import os
+from datetime import datetime
+
 import pyaudio
 import speech_recognition as sr
 import time
@@ -22,7 +24,7 @@ def start_recognition(recognizer):
             recognizer.energy_threshold = 300
 
         print("J'écoute")
-        audio = recognizer.listen(source)
+        audio = recognizer.listen(source,timeout=8,phrase_time_limit=3)
         print("J'ai entendu")
         try:
             statement = recognizer.recognize_google(audio, language='fr-FR')
@@ -53,7 +55,8 @@ def start_dancing():
 
 
 def findActionToDo(statement):
-
+    global last_action_time
+    global is_listening
     if "danse" in statement:
         for i in range(10):
             start_dancing()
@@ -74,8 +77,13 @@ def findActionToDo(statement):
     elif "blague" in statement or "rire" in statement:
         get_joke()
     else:
-        print("Je n'ai pas compris ton message")
-
+        current_time = datetime.now()
+        if is_listening and (current_time - last_action_time).total_seconds() > 60:
+            is_listening = False
+            print("Je me rendors")
+        else:
+            print("Je n'ai pas compris ton message")
+    last_action_time = datetime.now()
 
 def contain_weather_word(statement):
     return "meteo" in statement
@@ -112,21 +120,26 @@ def get_joke():
         print("Oups, celle-ci était un peu trop violente pour vous 🤖")
 
 
+last_action_time = datetime.now()
+is_listening = False
+
+
 def start_alita():
     recognizer = sr.Recognizer()
     print("Lancement d'Alita")
     isAwake = True
-    isListening = False
+    global is_listening
+    global last_action_time
     while isAwake:
         statement = start_recognition(recognizer=recognizer)
         print("test valeur = " + statement)
         if containWakeUpWord(statement):
             print("Salut mec")
-            isListening = True
+            is_listening = True
         elif containSleepWord(statement):
-            isListening = False
+            is_listening = False
             print("A la prochaine")
-        elif isListening:
+        elif is_listening:
             findActionToDo(statement)
 
         elif "bonne nuit" in statement:
