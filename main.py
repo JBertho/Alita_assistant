@@ -3,15 +3,20 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import os
+from datetime import datetime
 import pyaudio
 import speech_recognition as sr
 import time
 import requests
 from dotenv import load_dotenv
 
+from Reminder import Reminder
 from music import Music
 
 global currentSongPlaying
+
+recognizer = sr.Recognizer()
+reminders = list()
 
 
 def start_recognition(recognizer):
@@ -45,7 +50,7 @@ def containSleepWord(statement):
 
 
 def start_dancing():
-    for i in range(10) :
+    for i in range(10):
         print("♪┏( ・o･)┛♪┗ ( ･o･) ┓♪\n")
         time.sleep(1)
         print("♪┗ (・o･ )┓♪┏ (･o･ ) ┛♪\n")
@@ -53,7 +58,6 @@ def start_dancing():
 
 
 def findActionToDo(statement):
-
     if "danse" in statement:
         for i in range(10):
             start_dancing()
@@ -73,6 +77,12 @@ def findActionToDo(statement):
         get_city_weather(statement.split()[-1])
     elif "blague" in statement or "rire" in statement:
         get_joke()
+    elif "rappel" in statement:
+        print("Pour quelle heure ?")
+        hour = start_recognition(recognizer=recognizer)
+        print("OK ! Quel est le motif de ce rappel ?")
+        reason = start_recognition(recognizer=recognizer)
+        add_reminder(hour, reason)
     else:
         print("Je n'ai pas compris ton message")
 
@@ -112,12 +122,30 @@ def get_joke():
         print("Oups, celle-ci était un peu trop violente pour vous 🤖")
 
 
+def add_reminder(hour: str, reason: str):
+    try:
+        date_time_obj = datetime.strptime(hour, '%Hh%M')
+        reminder = Reminder(date_time_obj, reason)
+        reminders.append(reminder)
+        print(f"OK ! Rappel programmé à {reminder.hour} pour {reminder.reason}")
+    except:
+        print("Oops, le rappel n'a pas pu être programmé !")
+
+
+def check_reminders():
+    now = datetime.now()
+    for index, reminder in enumerate(reminders):
+        if reminder.hour.time() <= now.time():
+            print(f"RAPPEL : {reminder.reason}")
+            reminders.pop(index)
+
+
 def start_alita():
-    recognizer = sr.Recognizer()
     print("Lancement d'Alita")
     isAwake = True
     isListening = False
     while isAwake:
+        check_reminders()
         statement = start_recognition(recognizer=recognizer)
         print("test valeur = " + statement)
         if containWakeUpWord(statement):
