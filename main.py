@@ -2,10 +2,13 @@
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+import os
+
 import pyaudio
 import speech_recognition as sr
 import time
-
+import requests
+from dotenv import load_dotenv
 
 def start_recognition(recognizer):
     with sr.Microphone() as source:
@@ -23,6 +26,7 @@ def start_recognition(recognizer):
             print(e)
             return ""
 
+
 def containWakeUpWord(statement):
     return "debout alita" in statement or "debout anita" in statement or "debout aliba" in statement
 
@@ -38,10 +42,29 @@ def findActionToDo(statement):
             time.sleep(1)
             print("♪┗ (・o･ )┓♪┏ (･o･ ) ┛♪\n")
             time.sleep(1)
+    elif "météo" in statement or "temps" in statement:
+        get_city_weather(statement.split()[-1])
     else:
         print("Je n'ai pas compris ton message")
 
 
+def contain_weather_word(statement):
+    return "meteo" in statement
+
+
+def get_city_weather(city: str):
+    try:
+        open_weather_api_key = os.getenv("OPEN_WEATHER_API_KEY")
+        data = requests.get(
+            f"https://api.openweathermap.org/data/2.5/weather?q={city}&lang=fr&units=metric&APPID={open_weather_api_key}"
+        ).json()
+        temperature_in_degree = data.get('main')['temp']
+        weather_description = data.get('weather')[0].get('description')
+        print(
+            f"A {city}, il fait {temperature_in_degree}°C avec un temps {weather_description}"
+        )
+    except:
+        print("Désolé, mais je ne connais pas cette ville sur la planète Terre 🤖")
 
 
 def start_alita():
@@ -69,4 +92,5 @@ def start_alita():
 
 
 if __name__ == '__main__':
+    load_dotenv()
     start_alita()
