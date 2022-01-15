@@ -3,12 +3,12 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import os
-
 import pyaudio
 import speech_recognition as sr
 import time
 import requests
 from dotenv import load_dotenv
+
 
 def start_recognition(recognizer):
     with sr.Microphone() as source:
@@ -44,6 +44,8 @@ def findActionToDo(statement):
             time.sleep(1)
     elif "météo" in statement or "temps" in statement:
         get_city_weather(statement.split()[-1])
+    elif "blague" in statement or "rire" in statement:
+        get_joke()
     else:
         print("Je n'ai pas compris ton message")
 
@@ -65,6 +67,22 @@ def get_city_weather(city: str):
         )
     except:
         print("Désolé, mais je ne connais pas cette ville sur la planète Terre 🤖")
+
+
+def get_joke():
+    try:
+        blacklist_flags = os.getenv('JOKE_BLACKLIST_FLAGS')
+        data = requests.get(
+            f" https://v2.jokeapi.dev/joke/Any?lang=fr&blacklistFlags={blacklist_flags}"
+        ).json()
+
+        if data.get('type') == "single":
+            print(data.get('joke'))
+        else:
+            print(data.get('setup'))
+            print(data.get('delivery'))
+    except:
+        print("Oups, celle-ci était un peu trop violente pour vous 🤖")
 
 
 def start_alita():
