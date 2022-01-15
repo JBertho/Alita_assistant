@@ -19,5 +19,10 @@ class Music:
     def stop_song():
         if Music.currentSongPlaying is not None:
             Music.currentSongPlaying.stop()
+            Music.currentSongPlaying = None
             return True
         return False
+
+    @staticmethod
+    def is_playing():
+        return Music.currentSongPlaying is not None and Music.currentSongPlaying.is_playing()

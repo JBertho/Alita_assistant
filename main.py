@@ -8,7 +8,11 @@ global currentSongPlaying
 
 def start_recognition(recognizer):
     with sr.Microphone() as source:
-        recognizer.adjust_for_ambient_noise(source, duration=1)
+        if Music.is_playing():
+            recognizer.energy_threshold = 2000
+        else:
+            recognizer.energy_threshold = 300
+
         print("J'écoute")
         audio = recognizer.listen(source)
         print("J'ai entendu")
@@ -31,14 +35,19 @@ def containSleepWord(statement):
     return "je te laisse" in statement
 
 
+def start_dancing():
+    for i in range(10) :
+        print("♪┏( ・o･)┛♪┗ ( ･o･) ┓♪\n")
+        time.sleep(1)
+        print("♪┗ (・o･ )┓♪┏ (･o･ ) ┛♪\n")
+        time.sleep(1)
+
+
 def findActionToDo(statement):
 
     if "danse" in statement:
         for i in range(10):
-            print("♪┏( ・o･)┛♪┗ ( ･o･) ┓♪\n")
-            time.sleep(1)
-            print("♪┗ (・o･ )┓♪┏ (･o･ ) ┛♪\n")
-            time.sleep(1)
+            start_dancing()
     elif "lance la musique" in statement:
         result = Music.play_song()
         if result:
