@@ -9,9 +9,18 @@ import time
 import requests
 from dotenv import load_dotenv
 
+from music import Music
+
+global currentSongPlaying
+
 
 def start_recognition(recognizer):
     with sr.Microphone() as source:
+        if Music.is_playing():
+            recognizer.energy_threshold = 2000
+        else:
+            recognizer.energy_threshold = 300
+
         print("J'écoute")
         audio = recognizer.listen(source)
         print("J'ai entendu")
@@ -35,13 +44,31 @@ def containSleepWord(statement):
     return "je te laisse" in statement
 
 
+def start_dancing():
+    for i in range(10) :
+        print("♪┏( ・o･)┛♪┗ ( ･o･) ┓♪\n")
+        time.sleep(1)
+        print("♪┗ (・o･ )┓♪┏ (･o･ ) ┛♪\n")
+        time.sleep(1)
+
+
 def findActionToDo(statement):
+
     if "danse" in statement:
         for i in range(10):
-            print("♪┏( ・o･)┛♪┗ ( ･o･) ┓♪\n")
-            time.sleep(1)
-            print("♪┗ (・o･ )┓♪┏ (･o･ ) ┛♪\n")
-            time.sleep(1)
+            start_dancing()
+    elif "lance la musique" in statement:
+        result = Music.play_song()
+        if result:
+            print("C'est partie !")
+        else:
+            print("Je n'ai pas pu lancer le song")
+    elif "stop" in statement and "musique" in statement:
+        result = Music.stop_song()
+        if result:
+            print("J'ai arreté la musique")
+        else:
+            print("Il n'y avait rien a arreté")
     elif "météo" in statement or "temps" in statement:
         get_city_weather(statement.split()[-1])
     elif "blague" in statement or "rire" in statement:
