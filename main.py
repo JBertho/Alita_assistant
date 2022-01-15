@@ -12,8 +12,9 @@ from dotenv import load_dotenv
 
 from Reminder import Reminder
 from music import Music
+import pyttsx3
 
-global currentSongPlaying
+from synthesizer import Synthesizer
 
 recognizer = sr.Recognizer()
 reminders = list()
@@ -42,7 +43,7 @@ def start_recognition(recognizer):
 
 
 def containWakeUpWord(statement):
-    return "debout alita" in statement or "debout anita" in statement or "debout aliba" in statement
+    return "debout alita" in statement or "debout anita" in statement or "debout aliba" in statement or "debout anita" in statement
 
 
 def containSleepWord(statement):
@@ -57,41 +58,40 @@ def start_dancing():
         time.sleep(1)
 
 
-def findActionToDo(statement):
+def findActionToDo(statement, synthesizer):
     global last_action_time
     global is_listening
     if "danse" in statement:
-        for i in range(10):
             start_dancing()
     elif "lance la musique" in statement:
         result = Music.play_song()
         if result:
-            print("C'est partie !")
+            synthesizer.talk("C'est partie !")
         else:
-            print("Je n'ai pas pu lancer le song")
+            synthesizer.talk("Je n'ai pas pu lancer le son")
     elif "stop" in statement and "musique" in statement:
         result = Music.stop_song()
         if result:
-            print("J'ai arreté la musique")
+            synthesizer.talk("J'ai arreté la musique")
         else:
-            print("Il n'y avait rien a arreté")
+            synthesizer.talk("Il n'y avait rien a arreté")
     elif "météo" in statement or "temps" in statement:
-        get_city_weather(statement.split()[-1])
+        synthesizer.talk(get_city_weather(statement.split()[-1]))
     elif "blague" in statement or "rire" in statement:
-        get_joke()
+        get_joke(synthesizer)
     elif "rappel" in statement:
-        print("Pour quelle heure ?")
+        synthesizer.talk("Pour quelle heure ?")
         hour = start_recognition(recognizer=recognizer)
-        print("OK ! Quel est le motif de ce rappel ?")
+        synthesizer.talk("OK ! Quel est le motif de ce rappel ?")
         reason = start_recognition(recognizer=recognizer)
         add_reminder(hour, reason)
     else:
         current_time = datetime.now()
         if is_listening and (current_time - last_action_time).total_seconds() > 60:
             is_listening = False
-            print("Je me rendors")
-        else:
-            print("Je n'ai pas compris ton message")
+            synthesizer.talk("Je me rendors")
+        elif len(statement) > 0:
+            synthesizer.talk("Je n'ai pas compris ton message")
     last_action_time = datetime.now()
 
 def contain_weather_word(statement):
@@ -106,14 +106,14 @@ def get_city_weather(city: str):
         ).json()
         temperature_in_degree = data.get('main')['temp']
         weather_description = data.get('weather')[0].get('description')
-        print(
-            f"A {city}, il fait {temperature_in_degree}°C avec un temps {weather_description}"
-        )
+
+        return f"A {city}, il fait {temperature_in_degree}°C avec un temps {weather_description}"
+
     except:
-        print("Désolé, mais je ne connais pas cette ville sur la planète Terre 🤖")
+        return "Désolé, mais je ne connais pas cette ville sur la planète Terre 🤖"
 
 
-def get_joke():
+def get_joke(synthesizer):
     try:
         blacklist_flags = os.getenv('JOKE_BLACKLIST_FLAGS')
         data = requests.get(
@@ -121,12 +121,13 @@ def get_joke():
         ).json()
 
         if data.get('type') == "single":
-            print(data.get('joke'))
+            synthesizer.talk(data.get('joke'))
         else:
-            print(data.get('setup'))
-            print(data.get('delivery'))
+            synthesizer.talk(data.get('setup'))
+            time.sleep(1)
+            synthesizer.talk(data.get('delivery'))
     except:
-        print("Oups, celle-ci était un peu trop violente pour vous 🤖")
+        synthesizer.talk("Oups, celle-ci était un peu trop violente pour vous 🤖")
 
 
 last_action_time = datetime.now()
@@ -151,7 +152,8 @@ def check_reminders():
             reminders.pop(index)
 
 
-def start_alita():
+def start_alita(synthesizer):
+    recognizer = sr.Recognizer()
     print("Lancement d'Alita")
     isAwake = True
     global is_listening
@@ -161,21 +163,23 @@ def start_alita():
         statement = start_recognition(recognizer=recognizer)
         print("test valeur = " + statement)
         if containWakeUpWord(statement):
-            print("Salut mec")
+            synthesizer.talk("Salut mec")
             is_listening = True
         elif containSleepWord(statement):
             is_listening = False
-            print("A la prochaine")
+            synthesizer.talk("A la prochaine")
         elif is_listening:
-            findActionToDo(statement)
+            findActionToDo(statement,synthesizer)
 
         elif "bonne nuit" in statement:
             isAwake = False
-            print("Au revoir")
+            synthesizer.talk("Au revoir")
         else:
-            print("Je n'ai pas compris")
+            synthesizer.talk("Je n'ai pas compris")
 
 
 if __name__ == '__main__':
     load_dotenv()
-    start_alita()
+    synthesizer = Synthesizer()
+    start_alita(synthesizer)
+    #synthesizer.talk("Bonjour alban le grand maitre")
